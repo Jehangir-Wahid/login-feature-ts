@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import axios from "axios";
 import Header from "./Header";
 import ValidateInput from "../middleware/ValidateInput";
 import { useNavigate } from "react-router-dom";
@@ -14,9 +15,31 @@ const Login = () => {
     if (
       ValidateInput(username.value, "username") &&
       ValidateInput(password.value, "password")
-    ) {
-      setIsLoading(true);
-      navigate("/dashboard");
+      ) {
+        setIsLoading(true);
+      axios({
+        method: "POST",
+        url: "https://reqres.in/api/login",
+        headers: {
+          "content-type": "application/json",
+        },
+        data: {
+          username: username.value,
+          password: password.value,
+        },
+      })
+        .then((response) => {
+        //   console.log(response.data);
+          setIsLoading(false);
+          if (200 === response.status) {
+              navigate("/dashboard");
+          }
+        })
+        .catch((err) => {
+          setIsLoading(false);
+          setError(err.response.data.error)
+          console.log("Error occurred: ", err);
+        });
       setIsLoading(false);
     } else {
         setError("Invalid username or password")
