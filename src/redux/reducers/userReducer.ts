@@ -6,7 +6,7 @@ const initialState = {
   token: "",
 };
 
-interface UserType {
+export interface UserType {
   username: string;
   token: string;
 };

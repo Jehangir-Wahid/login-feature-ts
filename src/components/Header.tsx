@@ -4,11 +4,7 @@ import { State } from "../redux";
 import { Link } from "react-router-dom";
 import { logout } from "../redux/action-creators";
 import Logo from "./Logo";
-
-interface UserType {
-  username: string;
-  token: string;
-}
+import { UserType } from "../redux/reducers/userReducer";
 
 export default () => {
   const user: UserType = useSelector((state: State) => state.user);
