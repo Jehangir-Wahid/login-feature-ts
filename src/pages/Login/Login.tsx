@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import axios from "axios";
-import Logo from "./Logo";
+import Logo from "../../components/Logo";
 import { useDispatch, useSelector } from "react-redux";
-import { State } from "../redux";
-import { login, resetError, setError } from "../redux/action-creators";
+import { State } from "../../redux";
+import { login, resetError, setError } from "../../redux/action-creators";
 import { useNavigate } from "react-router";
 
 const initialState = {
@@ -57,11 +57,6 @@ export default () => {
 
               <div className="row">
                 <div className="col col-md-12">
-                  {isLoading ? (
-                    <div className="spinner-border" role="status">
-                      <span className="visually-hidden">Loading...</span>
-                    </div>
-                  ) : null}
                   {stateError.error ? (
                     <div className="alert alert-danger" role="alert">
                       {stateError.error}
@@ -70,7 +65,7 @@ export default () => {
                 </div>
               </div>
 
-              <form onSubmit={handleSubmit}>
+              <form data-testid="login-form" onSubmit={handleSubmit}>
                 <div className="form-floating mb-3">
                   <input
                     id="username"
@@ -101,17 +96,18 @@ export default () => {
                   <label htmlFor="password">Password</label>
                 </div>
 
-                <div className="checkbox mb-3">
-                  <label>
-                    <input type="checkbox" value="remember-me" /> Remember me
-                  </label>
+                <div>
+                  <input
+                    type="submit"
+                    className="btn btn-primary mb-3 me-3"
+                    value="Login"
+                  />
+                  {isLoading ? (
+                    <div className="spinner-border text-warning" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                  ) : null}
                 </div>
-
-                <input
-                  type="submit"
-                  className="btn btn-primary mb-3"
-                  value="Login"
-                />
               </form>
             </div>
           </div>
