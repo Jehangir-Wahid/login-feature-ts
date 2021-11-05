@@ -1,114 +1,118 @@
 import React, { useState } from "react";
 import axios from "axios";
-import Header from "./Header";
-import ValidateInput from "../middleware/ValidateInput";
-import { useNavigate } from "react-router-dom";
+import Logo from "./Logo";
+import { useDispatch, useSelector } from "react-redux";
+import { State } from "../redux";
+import { login, resetError, setError } from "../redux/action-creators";
+import { useNavigate } from "react-router";
 
-const Login = () => {
-  const username = useFormInput("");
-  const password = useFormInput("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+const initialState = {
+  username: "",
+  password: "",
+  isLoading: false,
+};
+
+export default () => {
+  const [username, setUsername] = useState(initialState.username);
+  const [password, setPassword] = useState(initialState.password);
+  const [isLoading, setIsLoading] = useState(initialState.isLoading);
+
+  const stateError = useSelector((state: State) => state.error);
+
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
-    if (
-      ValidateInput(username.value, "username") &&
-      ValidateInput(password.value, "password")
-      ) {
-        setIsLoading(true);
-      axios({
-        method: "POST",
-        url: "https://reqres.in/api/login",
-        headers: {
-          "content-type": "application/json",
-        },
-        data: {
-          username: username.value,
-          password: password.value,
-        },
+  const handleSubmit = (event: React.SyntheticEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsLoading(true);
+
+    axios
+      .post("https://reqres.in/api/login", {
+        username,
+        password,
       })
-        .then((response) => {
-        //   console.log(response.data);
-          setIsLoading(false);
-          if (200 === response.status) {
-              navigate("/dashboard");
-          }
-        })
-        .catch((err) => {
-          setIsLoading(false);
-          setError(err.response.data.error)
-          console.log("Error occurred: ", err);
-        });
-      setIsLoading(false);
-    } else {
-        setError("Invalid username or password")
-      setIsLoading(false);
-    }
-    e.preventDefault();
+      .then(async (response) => {
+        const { token } = response.data;
+        await dispatch(login(username, token));
+        setIsLoading(false);
+        dispatch(resetError());
+        navigate("/dashboard");
+      })
+      .catch((error) => {
+        dispatch(setError(error.response.data.error));
+        setIsLoading(false);
+      });
   };
 
   return (
     <>
-      <Header headerText="Login" />
-      <section className="pt-5 pb-5">
-        <div className="container">
-          <div className="row">
-            <div className="col col-md-6">
-              <div className="card mb-2">
-                <div className="card-body">
-                  <form onSubmit={handleSubmit}>
-                    <div className="form-group pb-3">
-                      <label htmlFor="exampleInputEmail1">Username</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        id="exampleInputEmail1"
-                        aria-describedby="emailHelp"
-                        placeholder="someone@example.com"
-                        {...username}
-                      />
-                      <small id="emailHelp" className="form-text text-muted">
-                        Username 5 to 20 characters or Email.
-                      </small>
+      <section className="login">
+        <div className="container vh-100">
+          <div className="row justify-content-center align-items-center h-100">
+            <div className="col-lg-4">
+              <div className="text-center">
+                <Logo width={110} height={25} />
+                <p className="mt-5 mb-3">Please login to dashboard</p>
+              </div>
+
+              <div className="row">
+                <div className="col col-md-12">
+                  {isLoading ? (
+                    <div className="spinner-border" role="status">
+                      <span className="visually-hidden">Loading...</span>
                     </div>
-                    <div className="form-group pb-3">
-                      <label htmlFor="exampleInputPassword1">Password</label>
-                      <input
-                        type="password"
-                        className="form-control"
-                        id="exampleInputPassword1"
-                        placeholder="Password"
-                        {...password}
-                      />
-                      <small id="passwordHelp" className="form-text text-muted">
-                        Alphabets and/or Numbers (6 to 20 characters).
-                      </small>
+                  ) : null}
+                  {stateError.error ? (
+                    <div className="alert alert-danger" role="alert">
+                      {stateError.error}
                     </div>
-                    <div className="form-group">
-                      <input
-                        type="submit"
-                        className="btn btn-primary col-md-12"
-                        value="Login"
-                      />
-                    </div>
-                  </form>
+                  ) : null}
                 </div>
               </div>
-            </div>
-          </div>
-          <div className="row">
-            <div className="col col-md-6">
-              {isLoading ? (
-                <div className="spinner-border" role="status">
-                  <span className="visually-hidden">Loading...</span>
+
+              <form onSubmit={handleSubmit}>
+                <div className="form-floating mb-3">
+                  <input
+                    id="username"
+                    autoComplete="off"
+                    type="text"
+                    className="form-control"
+                    placeholder="name@example.com"
+                    required={true}
+                    onChange={(event) => {
+                      setUsername(event.target.value);
+                    }}
+                  />
+                  <label htmlFor="username">Username</label>
                 </div>
-              ) : null}
-              {error ? (
-                <div className="alert alert-danger" role="alert">
-                  {error}
+
+                <div className="form-floating mb-3">
+                  <input
+                    id="password"
+                    autoComplete="off"
+                    type="password"
+                    className="form-control"
+                    placeholder="Password"
+                    required={true}
+                    onChange={(event) => {
+                      setPassword(event.target.value);
+                    }}
+                  />
+                  <label htmlFor="password">Password</label>
                 </div>
-              ) : null}
+
+                <div className="checkbox mb-3">
+                  <label>
+                    <input type="checkbox" value="remember-me" /> Remember me
+                  </label>
+                </div>
+
+                <input
+                  type="submit"
+                  className="btn btn-primary mb-3"
+                  value="Login"
+                />
+              </form>
             </div>
           </div>
         </div>
@@ -116,17 +120,3 @@ const Login = () => {
     </>
   );
 };
-
-const useFormInput = (initialValue: string) => {
-  const [value, setValue] = useState(initialValue);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    setValue(e.target.value);
-  };
-
-  return {
-    value,
-    onChange: handleChange,
-  };
-};
-export default Login
